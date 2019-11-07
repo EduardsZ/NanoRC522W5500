@@ -25,42 +25,59 @@ byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 String rfidUid = "", type = "in";
 uint32_t byteCount = 0;
 bool printWebData = true;
+uint32_t times = 0;
 
 
 void setup() {
 	Serial.begin(115200);
 	while (!Serial);
 	SPI.begin();
-  digitalWrite(10,1);
-  digitalWrite(9,0);
+  // digitalWrite(10,1);
+  // digitalWrite(9,0);
 
 	mfrc522.PCD_Init();		// Init MFRC522
-	delay(40);				// Optional delay. Some board do need more time after init to be ready, see Readme
+	delay(50);				// Optional delay. Some board do need more time after init to be ready, see Readme
 	mfrc522.PCD_DumpVersionToSerial();	// Show details of PCD - MFRC522 Card Reader details
-	Serial.println(F("RC Ready..."));
-  
+	Serial.print(F("RC Ready at "));
+  Serial.print(millis());
+  Serial.println(" ms. Ethernet init...");
+
   if (Ethernet.begin(mac) == 0) {
     Serial.println("Failed to configure Ethernet using DHCP"); 
-    // try to congifure using IP address instead of DHCP:
     Ethernet.begin(mac, ip);
   }
+
+  Serial.println(millis());
 }
 
 void loop() {
-	if ( ! mfrc522.PICC_IsNewCardPresent()) {
-		return;
+	/*if ( ! mfrc522.PICC_IsNewCardPresent()) {
+		// return;
+    delay(5);
+    Serial.print(".");
 	}
 
 	if ( ! mfrc522.PICC_ReadCardSerial()) {
-		return;
-	}
+		// return;
+    delay(5);
+    Serial.print(".");
+	}*/
 
-  for (byte i = 0; i < mfrc522.uid.size; i++) {
-    rfidUid += String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
-    rfidUid += String(mfrc522.uid.uidByte[i], HEX);
-    mfrc522.PICC_HaltA();
+if (mfrc522.PICC_IsNewCardPresent()){
+  if (mfrc522.PICC_ReadCardSerial()){
+    for (byte i = 0; i < mfrc522.uid.size; i++) {
+      rfidUid += String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
+      rfidUid += String(mfrc522.uid.uidByte[i], HEX);
+      mfrc522.PICC_HaltA();
+    }
+    Serial.println(rfidUid);
   }
-  Serial.println(rfidUid);
+}
+
+  if (client.available()) {
+    char c = client.read();
+    Serial.print(c);
+  }
 
   if (rfidUid != ""){
     if (client.connect("192.168.0.224", 80)) { // YOUR SERVER ADDRESS
@@ -80,12 +97,13 @@ void loop() {
       client.println();
     } 
 
-    if (client.connected()) 
-    { 
+    if (client.connected()) { 
       client.stop();
     }
+
+    rfidUid = "";
   }
 
+    rfidUid = "";
 
-  rfidUid = "";
 }
