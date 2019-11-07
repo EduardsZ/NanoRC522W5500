@@ -38,60 +38,21 @@ void setup() {
 	mfrc522.PCD_Init();		// Init MFRC522
 	delay(50);				// Optional delay. Some board do need more time after init to be ready, see Readme
 	mfrc522.PCD_DumpVersionToSerial();	// Show details of PCD - MFRC522 Card Reader details
-<<<<<<< HEAD
-	Serial.print(F("RC Ready at "));
-  Serial.print(millis());
-  Serial.println(" ms. Ethernet init...");
 
-  if (Ethernet.begin(mac) == 0) {
-=======
 	Serial.println(F("RC Ready, time "));
 	Serial.println(millis());
 	Serial.println(F("ms from start, init ethernet"));
-  
-/*   if (Ethernet.begin(mac) == 0) {
->>>>>>> 32d11adc59895e13cf8bdfb6805edd40c67d74ee
-    Serial.println("Failed to configure Ethernet using DHCP"); 
-    Ethernet.begin(mac, ip);
-<<<<<<< HEAD
-  }
 
-  Serial.println(millis());
-}
-
-void loop() {
-	/*if ( ! mfrc522.PICC_IsNewCardPresent()) {
-		// return;
-    delay(5);
-    Serial.print(".");
-	}
-
-	if ( ! mfrc522.PICC_ReadCardSerial()) {
-		// return;
-    delay(5);
-    Serial.print(".");
-	}*/
-
-if (mfrc522.PICC_IsNewCardPresent()){
-  if (mfrc522.PICC_ReadCardSerial()){
-    for (byte i = 0; i < mfrc522.uid.size; i++) {
-      rfidUid += String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
-      rfidUid += String(mfrc522.uid.uidByte[i], HEX);
-      mfrc522.PICC_HaltA();
-    }
-    Serial.println(rfidUid);
-  }
-}
-
+/*
   if (client.available()) {
     char c = client.read();
     Serial.print(c);
   }
-=======
-  } */
+*/
     Ethernet.begin(mac, ip);
+    Serial.println(F("ethernet ready, time "));
+    Serial.println(millis());
 }
-
 void loop() {
 
   if(mfrc522.PICC_IsNewCardPresent()){
@@ -104,8 +65,6 @@ void loop() {
       Serial.println(rfidUid);
     }
   }
-
->>>>>>> 32d11adc59895e13cf8bdfb6805edd40c67d74ee
 
   if (rfidUid != ""){
     if (client.connect("192.168.0.224", 80)) { // YOUR SERVER ADDRESS
@@ -123,7 +82,9 @@ void loop() {
       client.print(rfidUid);
       client.println("Connection: close");
       client.println();
-    } 
+    } else {
+      Serial.println("Couldn't connect");
+    }
 
     if (client.connected()) { 
       client.stop();
@@ -131,7 +92,5 @@ void loop() {
 
     rfidUid = "";
   }
-
-    rfidUid = "";
 
 }
